@@ -1,4 +1,5 @@
 using ApiApplication.Auth;
+using ApiApplication.Controllers;
 using ApiApplication.Database;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,9 +12,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ApiApplication
@@ -44,7 +47,8 @@ namespace ApiApplication
                 options.RequireAuthenticatedSignIn = true;                
                 options.DefaultScheme = CustomAuthenticationSchemeOptions.AuthenticationScheme;
             });
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
