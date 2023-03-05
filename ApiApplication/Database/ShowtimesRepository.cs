@@ -45,7 +45,10 @@ namespace ApiApplication.Database
 
         public IEnumerable<ShowtimeEntity> GetCollection(Func<ShowtimeEntity, bool> filter)
         {
-            return _context.Showtimes.Where(show => filter(show));
+            if (filter == null)
+                return _context.Showtimes;
+            else
+                return _context.Showtimes.Where(show => filter(show));
         }
 
         public ShowtimeEntity Update(ShowtimeEntity showtimeEntity)
