@@ -15,17 +15,27 @@ namespace ApiApplication.Database
 
         public ShowtimeEntity Add(ShowtimeEntity showtimeEntity)
         {
-            throw new System.NotImplementedException();
+            _context.Showtimes.Add(showtimeEntity);
+            _context.SaveChanges();
+            return showtimeEntity;
         }
 
         public ShowtimeEntity Delete(int id)
         {
-            throw new System.NotImplementedException();
+            var entity = _context.Showtimes.Find(id);
+            if (entity != null)
+            {
+                _context.Showtimes.Remove(entity);
+                _context.SaveChanges();
+                return entity;
+            }
+
+            throw new Exception($"ShowtimeEntity with Id={id} was not found");
         }
 
-        public ShowtimeEntity GetByMovie(Func<IQueryable<MovieEntity>, bool> filter)
+        public ShowtimeEntity GetByMovie(Func<MovieEntity, bool> filter)
         {
-            throw new System.NotImplementedException();
+            return _context.Showtimes.FirstOrDefault(show => filter(show.Movie));
         }
 
         public IEnumerable<ShowtimeEntity> GetCollection()
@@ -33,14 +43,16 @@ namespace ApiApplication.Database
             return GetCollection(null);
         }
 
-        public IEnumerable<ShowtimeEntity> GetCollection(Func<IQueryable<ShowtimeEntity>, bool> filter)
+        public IEnumerable<ShowtimeEntity> GetCollection(Func<ShowtimeEntity, bool> filter)
         {
-            throw new System.NotImplementedException();
+            return _context.Showtimes.Where(show => filter(show));
         }
 
         public ShowtimeEntity Update(ShowtimeEntity showtimeEntity)
         {
-            throw new System.NotImplementedException();
+            _context.Update(showtimeEntity);
+            _context.SaveChanges();
+            return showtimeEntity;
         }
     }
 }
