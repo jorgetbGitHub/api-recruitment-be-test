@@ -1,7 +1,11 @@
-﻿using ApiApplication.Database.Entities;
+﻿using ApiApplication.Database;
+using ApiApplication.Database.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections;
+using System.Linq;
 
 namespace ApiApplication.Controllers
 {
@@ -9,20 +13,32 @@ namespace ApiApplication.Controllers
     [Route("showtimes")]
     public class ShowtimeController : ControllerBase
     {
+        private readonly IShowtimesRepository _showtimeRepository;
+        public ShowtimeController(IShowtimesRepository showtimesRepository)
+        {
+            _showtimeRepository = showtimesRepository;
+        }
+
         [Authorize(Policy = "Read")]
         [HttpGet]
         public IActionResult Get([FromQuery] Filter filter)
         {
+            var collection = Enumerable.Empty<ShowtimeEntity>();
+
             try
             {
                 if (filter == null || filter.IsNullOrEmpty())
-                    return Ok("No apply filter, return all");
+                    collection = _showtimeRepository.GetCollection();
                 if (filter.Date.HasValue && !string.IsNullOrEmpty(filter.Title))
-                    return Ok("Apply both, date and title, filters");
+                    collection = _showtimeRepository.GetCollection(showtime =>
+                        showtime.StartDate <= filter.Date && filter.Date <= showtime.EndDate
+                        && (showtime.Movie?.Title?.Equals(filter.Title) ?? false));
                 if (filter.Date.HasValue)
-                    return Ok("Only apply date filter");
+                    collection = _showtimeRepository.GetCollection(showtime =>
+                        showtime.StartDate <= filter.Date && filter.Date <= showtime.EndDate);
                 if (!string.IsNullOrEmpty(filter.Title))
-                    return Ok("Only apply title filter");
+                    collection = _showtimeRepository.GetCollection(showtime =>
+                        showtime.Movie?.Title?.Equals(filter.Title) ?? false);
             }
             catch (Exception ex)
             {
@@ -38,6 +54,7 @@ namespace ApiApplication.Controllers
         {
             try
             {
+                showtime = _showtimeRepository.Add(showtime);
                 return CreatedAtAction(nameof(Get), showtime.Id);
             }
             catch(Exception ex)
@@ -52,6 +69,7 @@ namespace ApiApplication.Controllers
         {
             try
             {
+                showtime = _showtimeRepository.Update(showtime);
                 return Ok(showtime);
             }
             catch (Exception ex)
@@ -66,7 +84,8 @@ namespace ApiApplication.Controllers
         {
             try
             {
-                return Ok(id);
+                ShowtimeEntity showtime = _showtimeRepository.Delete(id);
+                return Ok(showtime);
             }
             catch(Exception ex)
             {
