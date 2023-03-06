@@ -1,6 +1,9 @@
 using ApiApplication.Auth;
+using ApiApplication.Auth.Policies;
 using ApiApplication.Controllers;
+using ApiApplication.Core;
 using ApiApplication.Database;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -41,14 +44,30 @@ namespace ApiApplication
             });
             services.AddTransient<IShowtimesRepository, ShowtimesRepository>();
             services.AddSingleton<ICustomAuthenticationTokenService, CustomAuthenticationTokenService>();
+
+            // Authentication configuration
             services.AddAuthentication(options =>
             {
                 options.AddScheme<CustomAuthenticationHandler>(CustomAuthenticationSchemeOptions.AuthenticationScheme, CustomAuthenticationSchemeOptions.AuthenticationScheme);
                 options.RequireAuthenticatedSignIn = true;                
                 options.DefaultScheme = CustomAuthenticationSchemeOptions.AuthenticationScheme;
             });
+
+            // DI Authorization handlers 
+            services.AddSingleton<IAuthorizationHandler, ReadHandler>();
+            services.AddSingleton<IAuthorizationHandler, WriteHandler>();
+
+            // Authorization configuration
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Read", policy => policy.Requirements.Add(new Read()));
+                options.AddPolicy("Write", policy => policy.Requirements.Add(new Write()));
+            });
+
             services.AddControllers()
                 .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance);
+            services.AddHttpContextAccessor();
+            services.Configure<PoliciesOptions>(Configuration.GetSection("Policies"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

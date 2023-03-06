@@ -1,4 +1,5 @@
 ﻿using ApiApplication.Database.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
@@ -8,6 +9,7 @@ namespace ApiApplication.Controllers
     [Route("showtimes")]
     public class ShowtimeController : ControllerBase
     {
+        [Authorize(Policy = "Read")]
         [HttpGet]
         public IActionResult Get([FromQuery] Filter filter)
         {
@@ -30,8 +32,9 @@ namespace ApiApplication.Controllers
             return Ok();
         }
 
+        [Authorize(Policy = "Write")]
         [HttpPost]
-        public IActionResult Post(Showtime showtime)
+        public IActionResult Post(ShowtimeEntity showtime)
         {
             try
             {
@@ -43,8 +46,9 @@ namespace ApiApplication.Controllers
             }
         }
 
+        [Authorize(Policy = "Write")]
         [HttpPut]
-        public IActionResult Put(Showtime showtime)
+        public IActionResult Put(ShowtimeEntity showtime)
         {
             try
             {
@@ -56,6 +60,7 @@ namespace ApiApplication.Controllers
             }
         }
 
+        [Authorize(Policy = "Write")]
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
@@ -69,6 +74,7 @@ namespace ApiApplication.Controllers
             }
         }
 
+        [Authorize(Policy = "Write")]
         [HttpPatch]
         public IActionResult Patch()
         {
