@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace ApiApplication.Controllers
 {
+    [ShowtimeExceptionFilter]
     [ApiController]
     [Route("showtimes")]
     public class ShowtimeController : ControllerBase
