@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApiApplication.Database.Entities
 {
+    [ModelBinder()]
     public class MovieEntity
     {
         public int Id { get; set; }
@@ -12,5 +14,15 @@ namespace ApiApplication.Database.Entities
         public DateTime ReleaseDate { get; set; }
 
         public int ShowtimeId { get; set; }
+
+        public MovieEntity()
+        {
+            // NOOP
+        }
+
+        public MovieEntity(string imdbId)
+        {
+            ImdbId = imdbId;
+        }
     }
 }

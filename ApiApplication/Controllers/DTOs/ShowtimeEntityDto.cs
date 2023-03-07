@@ -1,21 +1,16 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ApiApplication.Database.Entities
+namespace ApiApplication.Controllers.DTOs
 {
-    public class ShowtimeEntity
+    public class ShowtimeEntityDto
     {
         public int Id { get; set; }
-        public MovieEntity Movie { get; set; }
+        public MovieEntityDto Movie { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public IEnumerable<string> Schedule { get; set; }
         public int AuditoriumId { get; set; }
-
-        public bool HasMovie()
-        {
-            return Movie != null && !string.IsNullOrEmpty(Movie.ImdbId);
-        }
     }
 }

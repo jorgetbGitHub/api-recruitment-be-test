@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ApiApplication.Database.Entities;
+using Microsoft.AspNetCore.Mvc;
 using System;
 
 namespace ApiApplication.Controllers
@@ -12,7 +13,7 @@ namespace ApiApplication.Controllers
         {
             try
             {
-                return Ok();
+                return Ok(IMDBStatus.Instance);
             }
             catch (Exception ex)
             {

@@ -1,20 +1,45 @@
-﻿using ApiApplication.Database.Entities;
+﻿using ApiApplication.Core;
+using ApiApplication.Database.Entities;
+using IMDbApiLib;
+using IMDbApiLib.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ApiApplication.Database
 {
     public class ShowtimesRepository : IShowtimesRepository
     {
         private readonly CinemaContext _context;
-        public ShowtimesRepository(CinemaContext context)
+        private readonly AppSettings _settings;
+        public ShowtimesRepository(CinemaContext context, IOptions<AppSettings> appSettings)
         {
             _context = context;
+            _settings = appSettings.Value;
         }
 
-        public ShowtimeEntity Add(ShowtimeEntity showtimeEntity)
+        public async Task<ShowtimeEntity> Add(ShowtimeEntity showtimeEntity)
         {
+            if (showtimeEntity.HasMovie())
+            {
+                var apiLib = new ApiLib(_settings.IMDbApiKey);
+                TitleData titleData = await apiLib.TitleAsync(showtimeEntity.Movie.ImdbId);
+                showtimeEntity.Movie = new MovieEntity()
+                {
+                    ImdbId = titleData.Id,
+                    Title = titleData.Title,
+                    Stars = titleData.Stars,
+                    ReleaseDate = DateTime.Parse(titleData.ReleaseDate)
+                };
+            }
+            else
+            {
+                throw new Exception($"ShowtimeEntity {showtimeEntity} requires Movie and Movie's ImdbId informed.");
+            }
+
             _context.Showtimes.Add(showtimeEntity);
             _context.SaveChanges();
             return showtimeEntity;
@@ -35,7 +60,7 @@ namespace ApiApplication.Database
 
         public ShowtimeEntity GetByMovie(Func<MovieEntity, bool> filter)
         {
-            return _context.Showtimes.FirstOrDefault(show => filter(show.Movie));
+            return _context.Showtimes.Include(t => t.Movie).FirstOrDefault(show => filter(show.Movie));
         }
 
         public IEnumerable<ShowtimeEntity> GetCollection()
@@ -46,13 +71,27 @@ namespace ApiApplication.Database
         public IEnumerable<ShowtimeEntity> GetCollection(Func<ShowtimeEntity, bool> filter)
         {
             if (filter == null)
-                return _context.Showtimes;
+                return _context.Showtimes.Include(t => t.Movie);
             else
-                return _context.Showtimes.Where(show => filter(show));
+                return _context.Showtimes.Include(t => t.Movie).Where(show => filter(show));
         }
 
-        public ShowtimeEntity Update(ShowtimeEntity showtimeEntity)
+        public async Task<ShowtimeEntity> Update(ShowtimeEntity showtimeEntity)
         {
+            if (showtimeEntity.HasMovie())
+            {
+                var apiLib = new ApiLib(_settings.IMDbApiKey);
+                TitleData titleData = await apiLib.TitleAsync(showtimeEntity.Movie.ImdbId);
+                showtimeEntity.Movie = new MovieEntity()
+                {
+                    Id = showtimeEntity.Movie.Id,
+                    ImdbId = titleData.Id,
+                    Title = titleData.Title,
+                    Stars = titleData.Stars,
+                    ReleaseDate = DateTime.Parse(titleData.ReleaseDate)
+                };
+            }
+
             _context.Update(showtimeEntity);
             _context.SaveChanges();
             return showtimeEntity;

@@ -1,9 +1,12 @@
 using ApiApplication.Auth;
 using ApiApplication.Auth.Policies;
 using ApiApplication.Controllers;
+using ApiApplication.Controllers.DTOs;
 using ApiApplication.Core;
 using ApiApplication.Database;
+using ApiApplication.Database.Entities;
 using ApiApplication.Services;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -60,6 +63,18 @@ namespace ApiApplication
                 .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance);
             services.AddHttpContextAccessor();
             services.Configure<PoliciesOptions>(Configuration.GetSection("Policies"));
+            services.Configure<AppSettings>(Configuration);
+
+            // Automapper
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<ShowtimeEntityDto, ShowtimeEntity>();
+                cfg.CreateMap<MovieEntityDto, MovieEntity>();
+            });
+
+            var mapper = new Mapper(config);
+            services.AddSingleton<IMapper>(mapper);
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -67,7 +82,7 @@ namespace ApiApplication
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();                
+                app.UseDeveloperExceptionPage();
             }
 
             app.UseHttpsRedirection();

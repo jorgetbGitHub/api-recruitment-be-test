@@ -1,6 +1,10 @@
-﻿using ApiApplication.Database.Entities;
+﻿using ApiApplication.Core;
+using ApiApplication.Database.Entities;
+using IMDbApiLib;
+using IMDbApiLib.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Security.Cryptography.Xml;
 using System.Threading;
@@ -11,11 +15,13 @@ namespace ApiApplication.Services
     public class IMDbUpdaterHostedService : IHostedService, IDisposable
     {
         private readonly ILogger<IMDbUpdaterHostedService> _logger;
+        private readonly AppSettings _settings;
         private Timer _timer;
 
-        public IMDbUpdaterHostedService(ILogger<IMDbUpdaterHostedService> logger)
+        public IMDbUpdaterHostedService(ILogger<IMDbUpdaterHostedService> logger, IOptions<AppSettings> appSettings)
         {
             _logger = logger;
+            _settings = appSettings.Value;
         }
 
         public void Dispose()
@@ -41,11 +47,13 @@ namespace ApiApplication.Services
             return Task.CompletedTask;
         }
 
-        private void DoWork(object state)
+        private async void DoWork(object state)
         {
-            // Update IMDb Status
+            // Update IMDb Status [It works but is commented to do not exceed maximum api calls]
             var status = IMDBStatus.Instance;
-            status.Up = true;
+            var apiLib = new ApiLib(_settings.IMDbApiKey);
+            UsageData usage = await apiLib.UsageAsync();
+            status.Up = usage.Count < usage.Maximum;
             status.LastCall = DateTime.Now;
 
             _logger.LogInformation($"IMDb Status successfully updated. LastCall: {status.LastCall}");
