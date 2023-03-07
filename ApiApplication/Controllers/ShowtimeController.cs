@@ -87,7 +87,7 @@ namespace ApiApplication.Controllers
         public IActionResult Patch()
         {
             _logger.LogInformation($"Action = Patch execution time lapse: {HttpContext.Features.Get<IHttpRequestTimeFeature>()?.RequestTime}");
-            return StatusCode(500);
+            throw new Exception();
         }
 
         public class Filter

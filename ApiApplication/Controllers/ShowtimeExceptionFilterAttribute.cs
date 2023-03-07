@@ -10,7 +10,7 @@ namespace ApiApplication.Controllers
     {
         public override void OnException(ExceptionContext context)
         {
-            context.Result = new BadRequestObjectResult(context.Exception.Message);
+            context.Result = new StatusCodeResult(500);
         }
     }
 }
