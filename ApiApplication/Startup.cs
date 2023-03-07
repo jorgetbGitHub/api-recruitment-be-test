@@ -1,20 +1,21 @@
 using ApiApplication.Auth;
+using ApiApplication.Auth.Policies;
+using ApiApplication.Controllers;
+using ApiApplication.Controllers.DTOs;
+using ApiApplication.Core;
 using ApiApplication.Database;
+using ApiApplication.Database.Entities;
+using ApiApplication.Middlewares;
+using ApiApplication.Services;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ApiApplication
 {
@@ -38,13 +39,43 @@ namespace ApiApplication
             });
             services.AddTransient<IShowtimesRepository, ShowtimesRepository>();
             services.AddSingleton<ICustomAuthenticationTokenService, CustomAuthenticationTokenService>();
+            services.AddHostedService<IMDbUpdaterHostedService>();
+
+            // Authentication configuration
             services.AddAuthentication(options =>
             {
                 options.AddScheme<CustomAuthenticationHandler>(CustomAuthenticationSchemeOptions.AuthenticationScheme, CustomAuthenticationSchemeOptions.AuthenticationScheme);
                 options.RequireAuthenticatedSignIn = true;                
                 options.DefaultScheme = CustomAuthenticationSchemeOptions.AuthenticationScheme;
             });
-            services.AddControllers();
+
+            // DI Authorization handlers 
+            services.AddSingleton<IAuthorizationHandler, ReadHandler>();
+            services.AddSingleton<IAuthorizationHandler, WriteHandler>();
+
+            // Authorization configuration
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Read", policy => policy.Requirements.Add(new Read()));
+                options.AddPolicy("Write", policy => policy.Requirements.Add(new Write()));
+            });
+
+            services.AddControllers()
+                .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = SnakeCaseNamingPolicy.Instance);
+            services.AddHttpContextAccessor();
+            services.Configure<PoliciesOptions>(Configuration.GetSection("Policies"));
+            services.Configure<AppSettings>(Configuration);
+
+            // Automapper
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<ShowtimeEntityDto, ShowtimeEntity>();
+                cfg.CreateMap<MovieEntityDto, MovieEntity>();
+            });
+
+            var mapper = new Mapper(config);
+            services.AddSingleton<IMapper>(mapper);
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,7 +83,7 @@ namespace ApiApplication
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();                
+                app.UseDeveloperExceptionPage();
             }
 
             app.UseHttpsRedirection();
@@ -60,6 +91,9 @@ namespace ApiApplication
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // Custom middleware
+            app.UseMiddleware<RequestTimeMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {

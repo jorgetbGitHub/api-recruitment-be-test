@@ -1,2 +1,70 @@
 Please add the cURLs of your tests here:
 
+> Get all showtimes (by default exist 1)
+
+curl --location --request GET 'https://localhost:7629/showtimes' \
+--header 'ApiKey: MTIzNHxSZWFk'
+
+> Create new Showtime (and Movie)
+
+curl --location --request POST 'https://localhost:7629/showtimes' \
+--header 'ApiKey: Nzg5NHxXcml0ZQ==' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "id": 0,
+    "movie": {
+        "imdb_id": "tt0110413"
+    },
+    "start_date": "2018-03-29",
+    "end_date": "2022-01-01",
+    "schedule": ["19:00", "21:00"],
+    "auditorium_id": 1
+}'
+
+> Get all showtimes (now exist 2)
+
+curl --location --request GET 'https://localhost:7629/showtimes' \
+--header 'ApiKey: MTIzNHxSZWFk'
+
+> Get IMDB Status (repeat every 60 seconds to observe changes)
+
+curl --location --request GET 'https://localhost:7629/status' \
+--header 'ApiKey: MTIzNHxSZWFk'
+
+> Filter showtime by title (returns Inception as expected)
+
+curl --location --request GET 'https://localhost:7629/showtimes?title=Inception' \
+--header 'ApiKey: MTIzNHxSZWFk'
+
+> Filter showtime by date (returns León: The Professional as expected)
+
+curl --location --request GET 'https://localhost:7629/showtimes?date=2019-01-01' \
+--header 'ApiKey: MTIzNHxSZWFk'
+
+> Filter showtime by date & title using values used above (returns empty array as expected)
+
+curl --location --request GET 'https://localhost:7629/showtimes?date=2019-01-01&title=Inception' \
+--header 'ApiKey: MTIzNHxSZWFk'
+
+> Update Showtime with id=2 adding a new Schedule "22:00" (Then you can check Get again and confirm it was modified)
+
+curl --location --request PUT 'https://localhost:7629/showtimes' \
+--header 'ApiKey: Nzg5NHxXcml0ZQ==' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "id": 2,
+    "movie": null,
+    "start_date": "2018-03-29T00:00:00",
+    "end_date": "2022-01-01T00:00:00",
+    "schedule": [
+        "19:00",
+        "21:00",
+        "22:00"
+    ],
+    "auditorium_id": 1
+}'
+
+> Returns Internal Server Error as expected
+
+curl --location --request PATCH 'https://localhost:7629/showtimes' \
+--header 'ApiKey: Nzg5NHxXcml0ZQ=='
