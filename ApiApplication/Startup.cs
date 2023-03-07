@@ -5,6 +5,7 @@ using ApiApplication.Controllers.DTOs;
 using ApiApplication.Core;
 using ApiApplication.Database;
 using ApiApplication.Database.Entities;
+using ApiApplication.Middlewares;
 using ApiApplication.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -90,6 +91,9 @@ namespace ApiApplication
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // Custom middleware
+            app.UseMiddleware<RequestTimeMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {

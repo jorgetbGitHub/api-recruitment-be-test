@@ -1,6 +1,7 @@
 ﻿using ApiApplication.Controllers.DTOs;
 using ApiApplication.Database;
 using ApiApplication.Database.Entities;
+using ApiApplication.Middlewares;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -45,6 +46,7 @@ namespace ApiApplication.Controllers
                 collection = _showtimeRepository.GetCollection(showtime =>
                     showtime.Movie?.Title?.Equals(filter.Title) ?? false);
 
+            _logger.LogInformation($"Action = Get execution time lapse: {HttpContext.Features.Get<IHttpRequestTimeFeature>()?.RequestTime}");
             return Ok(collection);
         }
 
@@ -54,6 +56,8 @@ namespace ApiApplication.Controllers
         {
             var showtime = _mapper.Map<ShowtimeEntity>(showtimeDto);
             showtime = await _showtimeRepository.Add(showtime);
+
+            _logger.LogInformation($"Action = Post execution time lapse: {HttpContext.Features.Get<IHttpRequestTimeFeature>()?.RequestTime}");
             return CreatedAtAction(nameof(Get), showtime.Id);
         }
 
@@ -63,6 +67,8 @@ namespace ApiApplication.Controllers
         {
             var showtime = _mapper.Map<ShowtimeEntity>(showtimeDto);
             showtime = await _showtimeRepository.Update(showtime);
+
+            _logger.LogInformation($"Action = Put execution time lapse: {HttpContext.Features.Get<IHttpRequestTimeFeature>()?.RequestTime}");
             return Ok(showtime);
         }
 
@@ -71,6 +77,8 @@ namespace ApiApplication.Controllers
         public IActionResult Delete(int id)
         {
             ShowtimeEntity showtime = _showtimeRepository.Delete(id);
+
+            _logger.LogInformation($"Action = Delete execution time lapse: {HttpContext.Features.Get<IHttpRequestTimeFeature>()?.RequestTime}");
             return Ok(showtime);
         }
 
@@ -78,6 +86,7 @@ namespace ApiApplication.Controllers
         [HttpPatch]
         public IActionResult Patch()
         {
+            _logger.LogInformation($"Action = Patch execution time lapse: {HttpContext.Features.Get<IHttpRequestTimeFeature>()?.RequestTime}");
             return StatusCode(500);
         }
 
