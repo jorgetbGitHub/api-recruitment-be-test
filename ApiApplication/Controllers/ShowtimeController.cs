@@ -35,14 +35,14 @@ namespace ApiApplication.Controllers
 
             if (filter == null || filter.IsNullOrEmpty())
                 collection = _showtimeRepository.GetCollection();
-            if (filter.Date.HasValue && !string.IsNullOrEmpty(filter.Title))
+            else if (filter.Date.HasValue && !string.IsNullOrEmpty(filter.Title))
                 collection = _showtimeRepository.GetCollection(showtime =>
                     showtime.StartDate <= filter.Date && filter.Date <= showtime.EndDate
                     && (showtime.Movie?.Title?.Equals(filter.Title) ?? false));
-            if (filter.Date.HasValue)
+            else if (filter.Date.HasValue)
                 collection = _showtimeRepository.GetCollection(showtime =>
                     showtime.StartDate <= filter.Date && filter.Date <= showtime.EndDate);
-            if (!string.IsNullOrEmpty(filter.Title))
+            else
                 collection = _showtimeRepository.GetCollection(showtime =>
                     showtime.Movie?.Title?.Equals(filter.Title) ?? false);
 
@@ -58,7 +58,7 @@ namespace ApiApplication.Controllers
             showtime = await _showtimeRepository.Add(showtime);
 
             _logger.LogInformation($"Action = Post execution time lapse: {HttpContext.Features.Get<IHttpRequestTimeFeature>()?.RequestTime}");
-            return CreatedAtAction(nameof(Get), showtime.Id);
+            return Ok(showtime);
         }
 
         [Authorize(Policy = "Write")]
@@ -97,7 +97,7 @@ namespace ApiApplication.Controllers
 
             public bool IsNullOrEmpty()
             {
-                return !Date.HasValue || string.IsNullOrEmpty(Title);
+                return !Date.HasValue && string.IsNullOrEmpty(Title);
             }
         }
     }

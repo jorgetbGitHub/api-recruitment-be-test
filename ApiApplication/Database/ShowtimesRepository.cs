@@ -73,7 +73,7 @@ namespace ApiApplication.Database
             if (filter == null)
                 return _context.Showtimes.Include(t => t.Movie);
             else
-                return _context.Showtimes.Include(t => t.Movie).Where(show => filter(show));
+                return _context.Showtimes.Include(t => t.Movie).ToList().Where(show => filter(show));
         }
 
         public async Task<ShowtimeEntity> Update(ShowtimeEntity showtimeEntity)
